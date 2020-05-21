@@ -1,5 +1,6 @@
 package com.suenara.localizator.stringres.xml
 
+import com.suenara.localizator.data.xml.XmlElement
 import com.suenara.localizator.stringres.StringRes
 import com.suenara.localizator.stringres.StringResWriter
 import java.io.File
@@ -12,7 +13,8 @@ class XmlResFileWriter(private val output: File) : StringResWriter {
             printer.appendln(
                 OPEN_TAG.format(
                     RESOURCES_TAG
-                ))
+                )
+            )
             stringRes.keySet().map {
                 it to stringRes[it]
             }.forEach { (key, value) ->
@@ -26,7 +28,8 @@ class XmlResFileWriter(private val output: File) : StringResWriter {
             printer.append(
                 CLOSE_TAG.format(
                     RESOURCES_TAG
-                ))
+                )
+            )
         }
     }
 

@@ -1,5 +1,6 @@
 package com.suenara.localizator.stringres.xml
 
+import com.suenara.localizator.data.xml.XmlElement
 import com.suenara.localizator.stringres.MutableStringRes
 import com.suenara.localizator.stringres.StringRes
 import java.io.File

@@ -1,4 +1,4 @@
-package com.suenara.localizator.stringres.xml
+package com.suenara.localizator.data.xml
 
 class XmlElement(string: String) {
     val tag: String
@@ -13,15 +13,25 @@ class XmlElement(string: String) {
         require(origin.endsWith(END_TAG)) { "String should end with \'$END_TAG\'" }
 
         tag = extractName(origin)
-        attributes = extractAttributes(
-            origin
-        ).toMap(LinkedHashMap())
-        rawValue =
-            extractValueString(origin)
+        attributes = extractAttributes(origin).toMap(LinkedHashMap())
+        rawValue = extractValueString(origin)
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return (other as? XmlElement)?.let {
+            tag == it.tag && attributes == it.attributes && rawValue == it.rawValue
+        } ?: false
     }
 
     override fun toString(): String {
         return "XmlElement(tag=$tag, attributes=$attributes, rawValue=$rawValue)"
+    }
+
+    override fun hashCode(): Int {
+        var result = tag.hashCode()
+        result = 31 * result + attributes.hashCode()
+        result = 31 * result + (rawValue?.hashCode() ?: 0)
+        return result
     }
 
     fun getStringValue(): String? = rawValue
@@ -66,25 +76,28 @@ class XmlElement(string: String) {
 
             var nameEnd = -1
             for (index in 1 until string.length) {
-                if (!string[index].isLetter()) {
+                if (!(string[index].isLetterOrDigit() || string[index] == '_')) {
                     nameEnd = index
                     break
                 }
             }
             if (nameEnd == -1) throw IllegalStateException("No name in element $string")
-            return string.substring(1, nameEnd)
+            return string.substring(1, nameEnd).apply {
+                if (!first().run { isLetter() || this == '_' }) throw IllegalStateException("Malformed xml! Element should start with letter or underscore: $this")
+            }
         }
 
         private fun extractAttributes(string: CharSequence): List<Pair<String, String>> {
-            val skipLength = 1 + extractName(
-                string
-            ).length
+            val skipLength = 1 + extractName(string).length
             var endIndex = skipLength
             for (index in skipLength until string.length) {
                 if (string[index] == END_TAG && string[index - 1] != '\\') {
                     endIndex = index
                     break
                 }
+            }
+            if ((skipLength until endIndex).run { first == last }) {
+                return emptyList()
             }
 
             val wordBuilder = StringBuilder()
@@ -97,7 +110,7 @@ class XmlElement(string: String) {
                     isName -> {
                         if (string[index].isWhitespace()) {
                             continue@loop
-                        } else if (string[index].isLetter()) {
+                        } else if (string[index].isLetterOrDigit()) {
                             wordBuilder.append(string[index])
                         } else if (string[index] == '=') {
                             nameList.add(wordBuilder.toString())
@@ -128,12 +141,12 @@ class XmlElement(string: String) {
                     }
                 }
             }
+
             return nameList.zip(attributeList)
         }
 
         private fun extractValueString(string: CharSequence): String? {
-            val name = extractName(string)
-                .reversed()
+            val name = extractName(string).reversed()
 
             var startOfValue = name.length
             for (index in (1 + name.length) until string.length) {

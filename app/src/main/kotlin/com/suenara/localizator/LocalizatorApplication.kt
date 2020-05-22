@@ -17,8 +17,8 @@ fun main(args: Array<String>) {
     val source = argsMap[SOURCE_ARGUMENT]?.let { File(it) }
     val dest = argsMap[DESTINATION_ARGUMENT]?.let { File(it) }
 
-    require(source != null && source.isFile) { "Invalid source ${argsMap[SOURCE_ARGUMENT]}!" }
-    require(dest != null && dest.isFile) { "Invalid destination ${argsMap[DESTINATION_ARGUMENT]}!" }
+    require(source != null && source.isFile) { "Invalid source `${argsMap[SOURCE_ARGUMENT]}`!" }
+    require(dest != null && dest.isFile) { "Invalid destination `${argsMap[DESTINATION_ARGUMENT]}`!" }
 
     MergeStringRes(XmlFileStringRes(source), XmlFileStringRes(dest), XmlResFileWriter(dest)).merge()
 }

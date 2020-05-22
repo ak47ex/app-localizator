@@ -1,6 +1,5 @@
-package com.suenara.localizator.stringres.xml
+package com.suenara.localizator.data.xml
 
-import com.suenara.localizator.data.xml.XmlElement
 import kotlin.test.Test
 import kotlin.test.assertFails
 import kotlin.test.assertFalse

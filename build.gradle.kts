@@ -1,38 +1,31 @@
-import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
-
 plugins {
-    application
     kotlin("jvm") version "1.3.72"
     kotlin("kapt") version "1.3.72"
 }
 
-application {
-    mainClassName = "LocalizatorApplication"
+allprojects {
+    group = "com.suenara.localizator"
+    version = "1.0.0"
+
+    repositories {
+        jcenter()
+    }
 }
 
-dependencies {
-    implementation(kotlin("stdlib"))
-    testImplementation(kotlin("test"))
-    testImplementation(kotlin("test-junit"))
-}
-
-repositories {
-    jcenter()
-}
-
-kapt {
-    correctErrorTypes = true
-}
 
 sourceSets {
     named("main") {
-        withConvention(KotlinSourceSet::class) {
+        withConvention(org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet::class) {
             kotlin.srcDir("src/main/kotlin")
         }
     }
     named("test") {
-        withConvention(KotlinSourceSet::class) {
+        withConvention(org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet::class) {
             kotlin.srcDir("src/test/kotlin")
         }
     }
+}
+
+kapt {
+    correctErrorTypes = true
 }

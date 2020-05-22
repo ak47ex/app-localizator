@@ -49,25 +49,19 @@ class XmlFileStringRes(file: File) : MutableStringRes {
 
             file.useLines { lines ->
                 var extractKeys = false
-                val startTag = OPEN_TAG.format(
-                    RESOURCES_TAG
-                )
-                val closeTag = CLOSE_TAG.format(
-                    RESOURCES_TAG
-                )
+                val startTag = OPEN_TAG.format(RESOURCES_TAG)
+                val closeTag = CLOSE_TAG.format(RESOURCES_TAG)
                 for (line in lines) {
                     if (!extractKeys) {
-                        if (line.startsWith(startTag)) {
+                        if (line.trim().startsWith(startTag)) {
                             extractKeys = true
                         }
                         continue
                     }
-                    if (extractKeys && line.startsWith(closeTag)) {
+                    if (extractKeys && line.trim().startsWith(closeTag)) {
                         break
                     }
-                    XmlElement(line).let {
-                        map[requireNotNull(it.attributes[NAME_ATTRIBUTE])] = it
-                    }
+                    XmlElement(line).let { map[requireNotNull(it.attributes[NAME_ATTRIBUTE])] = it }
                 }
             }
             return map

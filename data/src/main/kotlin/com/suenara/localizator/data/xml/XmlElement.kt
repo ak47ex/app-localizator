@@ -83,7 +83,9 @@ class XmlElement(string: String) {
             }
             if (nameEnd == -1) throw IllegalStateException("No name in element $string")
             return string.substring(1, nameEnd).apply {
-                if (!first().run { isLetter() || this == '_' }) throw IllegalStateException("Malformed xml! Element should start with letter or underscore: $this")
+                if (isEmpty() || !first().run { isLetter() || this == '_' }) {
+                    throw IllegalStateException("Malformed xml! Element should start with letter or underscore: `$this`. Source string is `$string`.")
+                }
             }
         }
 

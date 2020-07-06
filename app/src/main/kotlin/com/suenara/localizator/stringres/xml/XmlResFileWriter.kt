@@ -18,11 +18,14 @@ class XmlResFileWriter(private val output: File) : StringResWriter {
             stringRes.keySet().map {
                 it to stringRes[it]
             }.forEach { (key, value) ->
-                val line = XmlElement.Builder(STRING_VALUE_TAG)
-                    .addAttribute(NAME_ATTRIBUTE, key)
-                    .setValue(value)
-                    .build()
-
+                val line = if (key.startsWith(COMMENT_TAG)) {
+                    XmlElement.Builder(key).comment().build()
+                } else {
+                    XmlElement.Builder(STRING_VALUE_TAG)
+                        .addAttribute(NAME_ATTRIBUTE, key)
+                        .setValue(value)
+                        .build()
+                }
                 printer.appendln("$VALUES_INTENT$line")
             }
             printer.append(
@@ -42,5 +45,7 @@ class XmlResFileWriter(private val output: File) : StringResWriter {
         private const val VALUES_INTENT = "    "
         private const val NAME_ATTRIBUTE = "name"
 
+        //TODO: rework comments
+        private const val COMMENT_TAG = "<!--"
     }
 }

@@ -4,13 +4,16 @@ class XmlElement(string: String) {
     val tag: String
     val attributes: Map<String, String>
 
+    val isComment: Boolean
+        get() = attributes.containsKey(COMMENT_ATTRIBUTE)
+
     private val rawValue: String?
 
     init {
         val origin: String = string.trim()
 
-        require(origin.startsWith(OPEN_TAG)) { "String should start with \'$OPEN_TAG\'" }
-        require(origin.endsWith(END_TAG)) { "String should end with \'$END_TAG\'" }
+        require(origin.startsWith(OPEN_TAG)) { "String should start with \'$OPEN_TAG\'. String is `$origin`" }
+        require(origin.endsWith(END_TAG)) { "String should end with \'$END_TAG\'. String is `$origin`" }
 
         tag = extractName(origin)
         attributes = extractAttributes(origin).toMap(LinkedHashMap())
@@ -48,11 +51,22 @@ class XmlElement(string: String) {
 
         private var value: String? = null
 
+        private var isComment = false
+
+        //TODO: rework comments
+        fun comment() = apply {
+            isComment = true
+        }
+
         fun addAttribute(key: String, value: String) = apply { attributes.add(key to value) }
 
         fun setValue(value: String?) = apply { this.value = value }
 
         fun build(): String = StringBuilder().apply {
+            if (isComment) {
+                append(tag)
+                return@apply
+            }
             append("$OPEN_TAG$tag")
             attributes.forEach { (key, value) ->
                 append(" $key=\"$value\"")
@@ -70,10 +84,19 @@ class XmlElement(string: String) {
     companion object {
         private const val OPEN_TAG = '<'
         private const val END_TAG = '>'
+        private const val COMMENT_OPEN_TAG = "!--"
+        private const val COMMENT_CLOSE_TAG = "--"
+
+        private val COMMENT_ATTRIBUTE = OPEN_TAG + COMMENT_OPEN_TAG
 
         private fun extractName(string: CharSequence): String {
             require(OPEN_TAG == string[0])
-
+            if (string.startsWith(OPEN_TAG + COMMENT_OPEN_TAG)) {
+                return string.substring(
+                    string.indexOf(OPEN_TAG + COMMENT_OPEN_TAG),
+                    string.lastIndexOf(COMMENT_CLOSE_TAG + END_TAG) + (COMMENT_CLOSE_TAG + END_TAG).length
+                )
+            }
             var nameEnd = -1
             for (index in 1 until string.length) {
                 if (!(string[index].isLetterOrDigit() || string[index] == '_')) {
@@ -90,6 +113,9 @@ class XmlElement(string: String) {
         }
 
         private fun extractAttributes(string: CharSequence): List<Pair<String, String>> {
+            if (string.startsWith(OPEN_TAG + COMMENT_OPEN_TAG)) {
+                return listOf(OPEN_TAG + COMMENT_OPEN_TAG to COMMENT_CLOSE_TAG + END_TAG)
+            }
             val skipLength = 1 + extractName(string).length
             var endIndex = skipLength
             for (index in skipLength until string.length) {

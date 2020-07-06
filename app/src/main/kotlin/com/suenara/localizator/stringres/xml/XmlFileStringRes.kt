@@ -24,12 +24,16 @@ class XmlFileStringRes(file: File) : MutableStringRes {
 
     override fun set(key: String, value: String?) {
         value?.let {
-            resourceMap[key] = XmlElement.Builder(STRING_VALUE_TAG)
-                .addAttribute(NAME_ATTRIBUTE, key)
-                .setValue(value)
-                .build().let {
-                    XmlElement(it)
-                }
+            if (key.startsWith(COMMENT_TAG)) {
+                resourceMap[key] = XmlElement.Builder(key).comment().build().let { XmlElement(it) }
+            } else {
+                resourceMap[key] = XmlElement.Builder(STRING_VALUE_TAG)
+                    .addAttribute(NAME_ATTRIBUTE, key)
+                    .setValue(value)
+                    .build().let {
+                        XmlElement(it)
+                    }
+            }
         } ?: resourceMap.remove(key)
     }
 
@@ -40,6 +44,9 @@ class XmlFileStringRes(file: File) : MutableStringRes {
     companion object {
         private const val STRING_VALUE_TAG = "string"
         private const val RESOURCES_TAG = "resources"
+
+        //TODO: rework comments
+        private const val COMMENT_TAG = "<!--"
         private const val OPEN_TAG = "<%s>"
         private const val CLOSE_TAG = "</%s>"
         private const val NAME_ATTRIBUTE = "name"
@@ -52,6 +59,7 @@ class XmlFileStringRes(file: File) : MutableStringRes {
                 val startTag = OPEN_TAG.format(RESOURCES_TAG)
                 val closeTag = CLOSE_TAG.format(RESOURCES_TAG)
                 for (line in lines) {
+                    if (line.isBlank()) continue
                     if (!extractKeys) {
                         if (line.trim().startsWith(startTag)) {
                             extractKeys = true
@@ -61,7 +69,13 @@ class XmlFileStringRes(file: File) : MutableStringRes {
                     if (extractKeys && line.trim().startsWith(closeTag)) {
                         break
                     }
-                    XmlElement(line).let { map[requireNotNull(it.attributes[NAME_ATTRIBUTE])] = it }
+                    XmlElement(line).let {
+                        when {
+                            it.attributes.containsKey(NAME_ATTRIBUTE) -> map[requireNotNull(it.attributes[NAME_ATTRIBUTE])] =
+                                it
+                            it.isComment -> map[it.tag] = it
+                        }
+                    }
                 }
             }
             return map
